@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>कामगार कनेक्ट - मास्टर प्रो</title>
+    
+    <!-- Firebase CDN (Version 8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        /* Vibrant Professional Background */
+        body { 
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #333; min-height: 100vh; overflow-x: hidden; 
+        }
+
+        /* Header - Stylish Glass Effect */
+        header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+        }
+        header h1 { font-size: 30px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .admin-corner { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: rgba(255,255,255,0.7); transition: 0.3s; }
+        .admin-corner:hover { color: #f1c40f; transform: scale(1.1); }
+
+        .nav-buttons { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .nav-buttons button { 
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); 
+            color: white; padding: 8px 18px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: 0.3s; 
+            backdrop-filter: blur(5px);
+        }
+        .nav-buttons button:hover, .nav-buttons button.active { background: white; color: #764ba2; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-2px); }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
+        .section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .active-section { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Boxes & Forms (Colorful) */
+        .box { 
+            background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); max-width: 600px; margin: 0 auto 20px auto; 
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .box-large { max-width: 1100px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-weight: 700; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #444; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 12px; border: 2px solid #e0e6ed; border-radius: 10px; font-size: 15px; outline: none; transition: 0.3s; 
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #667eea; box-shadow: 0 0 8px rgba(102, 126, 234, 0.3); }
+        .dob-group { display: flex; gap: 8px; }
+        .dob-group select { flex: 1; }
+        
+        .btn-main { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 14px; border: none; 
+            border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; 
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .link { text-align: center; margin-top: 15px; color: #667eea; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: underline; }
+
+        /* File Upload */
+        .file-upload { border: 2px dashed #667eea; border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; background: #f8faff; transition: 0.3s; position: relative; }
+        .file-upload input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+        /* Grid & Stylish Cards */
+        .search-bar { 
+            width: 100%; padding: 16px; border-radius: 30px; border: 2px solid #ddd; font-size: 16px; 
+            margin-bottom: 25px; text-align: center; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s;
+        }
+        .search-bar:focus { border-color: #667eea; }
+        
+        .workers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 25px; }
+        .worker-card { 
+            border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+            transition: 0.3s; border: 1px solid #fff; position: relative; 
+        }
+        .worker-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+        .profile-pic { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 12px; background: #eee; }
+        
+        .skills-container { margin: 12px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+        .skill-badge { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.1); color: #333; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .booked-badge { background: #ff4757; color: white; padding: 6px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-top: 10px; display: inline-block; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); }
+        .rating-badge { position: absolute; top: 15px; right: 15px; background: #f1c40f; color: #000; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 800; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+
+        /* Profile & Dashboards */
+        .profile-header { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); padding: 30px; border-radius: 15px; text-align: center; color: #333; margin-bottom: 20px; }
+        .dashboard-card { background: #fff; border-left: 5px solid #ff7f50; padding: 20px; margin-bottom: 15px; border-radius: 12px; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .dashboard-card.worker-dash { border-left-color: #2ed573; background: #f4fff8; }
+        .dashboard-card.cust-dash { background: #fffaf0; }
+        .action-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-small { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: white; transition: 0.3s; }
+        .btn-small:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn-aadhaar { background: #3498db; }
+
+        /* Admin Table */
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .admin-table th, .admin-table td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        .admin-table th { background: #34495e; color: white; font-weight: 600; }
+        .admin-table tr:hover { background-color: #f8f9fa; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .modal-img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 10px; margin: 15px 0; border: 2px solid #eee; background: #f9f9f9; }
+        
+        .stars-container { display: flex; justify-content: center; gap: 12px; margin: 20px 0; font-size: 35px; cursor: pointer; }
+        .star { color: #ddd; transition: 0.2s; }
+        .star.active { color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="admin-corner" onclick="nav('admin')" title="एडमिन पैनल">🛡️</div>
+        <h1>✨ कामगार कनेक्ट</h1>
+        <div class="nav-buttons">
+            <button id="nav-home" class="active" onclick="nav('home')">🏠 होम</button>
+            <button id="nav-auth" onclick="nav('auth')">👤 लॉगिन/रजिस्टर</button>
+            <button id="nav-profile" onclick="nav('profile')" style="display:none;">⚙️ मेरी प्रोफाइल</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- ================= 1. HOME ================= -->
+        <div id="home" class="section active-section">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 कारीगर खोजें (जैसे: ड्राइवर, राज मिस्त्री, या शहर का नाम...)" onkeyup="renderHome()">
+            <div class="workers-grid" id="workersContainer"></div>
+        </div>
+
+        <!-- ================= 2. AUTH SECTION ================= -->
+        <div id="auth" class="section">
+            <!-- Login -->
+            <div class="box" id="loginBox">
+                <h2>लॉगिन करें</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="l_phone" required></div>
+                    <div class="form-group"><label>पासवर्ड</label><input type="password" id="l_pwd" required></div>
+                    <button type="submit" class="btn-main">लॉगिन</button>
+                </form>
+                <div class="link" onclick="toggleAuth('register')">नया अकाउंट बनाएँ</div>
+                <div class="link" onclick="toggleAuth('forgot')" style="color:#e74c3c;">पासवर्ड भूल गए?</div>
+            </div>
+
+            <!-- Registration -->
+            <div class="box" id="registerBox" style="display:none;">
+                <h2>नया अकाउंट बनाएँ</h2>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group"><label>पूरा नाम</label><input type="text" id="r_name" required></div>
+                    <div class="form-group"><label>पूरा पता (Address)</label><input type="text" id="r_address" placeholder="अपना गाँव/शहर और मोहल्ला लिखें" required></div>
+                    <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="r_phone" required></div>
+                    <div class="form-group">
+                        <label>जन्म तिथि (पासवर्ड रिसेट के लिए)</label>
+                        <div class="dob-group">
+                            <select id="r_day" class="dob-d" required></select>
+                            <select id="r_month" class="dob-m" required></select>
+                            <select id="r_year" class="dob-y" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>पासवर्ड बनाएँ</label><input type="password" id="r_pwd" required></div>
+                    <div class="form-group"><label>आधार कार्ड नंबर</label><input type="text" id="r_aadhaar" placeholder="12 अंकों का आधार नंबर" maxlength="12" required></div>
+                    <div class="form-group">
+                        <label>आधार कार्ड की फोटो (Front)</label>
+                        <div class="file-upload">
+                            <span style="font-size:30px;">📷</span><br>
+                            <span style="font-weight:600; color:#667eea;">कैमरे से खींचें या अपलोड करें</span>
+                            <input type="file" accept="image/*" capture="environment" id="r_aadhaar_file" onchange="previewAadhaarReg(event)" required>
+                            <img id="reg_aadhaar_preview" style="display:none; width:100px; margin-top:10px; border-radius:5px;">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-main" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color:#000;">रजिस्टर करें</button>
+                </form>
+                <div class="link" onclick="toggleAuth('login')">लॉगिन पर वापस जाएं</div>
+            </div>
+
+            <!-- Forgot Password -->
+            <div class="box" id="forgotBox" style="display:none;">
+                <h2>पासवर्ड रिकवर करें</h2>
+                <form onsubmit="handleForgot(event)">
+                    <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="f_phone" required></div>
+                    <div class="form-group">
+                        <label>रजिस्टर्ड जन्म तिथि डालें</label>
+                        <div class="dob-group">
+                            <select id="f_day" class="dob-d" required></select>
+                            <select id="f_month" class="dob-m" required></select>
+                            <select id="f_year" class="dob-y" required></select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-main">पासवर्ड दिखाएं</button>
+                </form>
+                <div class="link" onclick="toggleAuth('login')">वापस लॉगिन पर जाएं</div>
+            </div>
+        </div>
+
+        <!-- ================= 3. PROFILE & DASHBOARDS ================= -->
+        <div id="profile" class="section">
+            <div class="box box-large">
+                
+                <div class="profile-header">
+                    <img id="p_photo_preview" src="" class="profile-pic" style="border-color:#fff; width:100px; height:100px;">
+                    <h2 id="p_name" style="margin:5px 0 0 0; color:#333;">नाम</h2>
+                    <div style="font-size:16px; font-weight:bold; margin-top:5px; color:#555;">⭐ <span id="p_rating">0</span>/5 रेटिंग</div>
+                    <br><label style="color:#667eea; cursor:pointer; font-weight:700; background:#fff; padding:5px 15px; border-radius:20px;">📷 प्रोफाइल फोटो बदलें<input type="file" accept="image/*" style="display:none;" onchange="updateProfilePic(event)"></label>
+                </div>
+
+                <!-- Update Phone & Address -->
+                <div style="max-width:500px; margin:0 auto 30px auto; background:#f9f9f9; padding:20px; border-radius:15px; border:1px solid #eee;">
+                    <div class="form-group">
+                        <label>मोबाइल नंबर अपडेट करें:</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="tel" id="p_phone_input">
+                            <button onclick="updatePhone()" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>पूरा पता (Address) अपडेट करें:</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="p_address_input" placeholder="अपना सही पता लिखें">
+                            <button onclick="updateAddress()" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Dashboard -->
+                <div id="customerDashboard" style="display:none;">
+                    <h3 style="color:#d35400; margin-bottom:15px; border-bottom:2px solid #eee; padding-bottom:10px;">🛒 मैंने जिन्हें काम पर रखा है</h3>
+                    <div id="myBookingsList"></div>
+                </div>
+
+                <!-- Worker Dashboard -->
+                <div id="workerDashboard" style="display:none; margin-top:30px;">
+                    <h3 style="color:#27ae60; margin-bottom:15px; border-bottom:2px solid #eee; padding-bottom:10px;">💼 मेरा काम (Current Job)</h3>
+                    <div id="whoBookedMeList"></div>
+                </div>
+                
+                <!-- Skills (For Workers) -->
+                <div style="margin-top:30px;">
+                    <h3 style="color:#2c3e50; border-bottom:2px solid #eee; padding-bottom:10px;">🛠️ मेरे काम और अनुभव</h3>
+                    <div id="mySkillsList" style="margin:15px 0;"></div>
+
+                    <div style="background:#f4f9f9; padding:20px; border-radius:12px; border:1px solid #dcdde1;">
+                        <h4 style="margin-bottom:15px;">नया काम जोड़ें (कारीगर बनें)</h4>
+                        <select id="work_cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;"></select>
+                        <input type="text" id="work_exp" placeholder="अनुभव लिखें (जैसे: 5 साल, 6 महीने)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;">
+                        <button onclick="addWork()" class="btn-main" style="background:#27ae60; margin:0;">+ प्रोफाइल में जोड़ें</button>
+                    </div>
+                </div>
+                
+                <button onclick="logout()" class="btn-main" style="background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); margin-top:30px;">लॉगआउट करें</button>
+            </div>
+        </div>
+
+        <!-- ================= 4. ADMIN PANEL ================= -->
+        <div id="admin" class="section">
+            <div class="box" id="adminLoginBox">
+                <h2>सुपर एडमिन लॉगिन</h2>
+                <input type="password" id="a_pwd" placeholder="पासवर्ड डालें" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:2px solid #ccc;">
+                <button onclick="adminLogin()" class="btn-main" style="background:#34495e;">लॉगिन</button>
+                <div class="link" onclick="toggleAdminAuth('forgot')" style="color:#e74c3c;">पासवर्ड भूल गए?</div>
+            </div>
+
+            <div class="box" id="adminForgotBox" style="display:none;">
+                <h2>एडमिन पासवर्ड रिसेट</h2>
+                <div class="form-group">
+                    <label>एडमिन जन्म तिथि डालें</label>
+                    <div class="dob-group">
+                        <select id="af_day" class="dob-d"></select><select id="af_month" class="dob-m"></select><select id="af_year" class="dob-y"></select>
+                    </div>
+                </div>
+                <button onclick="adminForgot()" class="btn-main" style="background:#34495e;">रिसेट करें</button>
+                <div class="link" onclick="toggleAdminAuth('login')">लॉगिन पर वापस जाएं</div>
+            </div>
+
+            <!-- Master Dashboard -->
+            <div class="box box-large" id="adminDashboardBox" style="display:none; background:#fff;">
+                <h2 style="color:#8e44ad;">मास्टर एडमिन डैशबोर्ड</h2>
+                <button onclick="adminLogout()" class="btn-main" style="background:#e74c3c; margin-bottom:20px; width:auto; padding:10px 20px; float:right;">लॉगआउट</button>
+                <div style="clear:both;"></div>
+
+                <div style="background:#f4f9f9; padding:20px; border-radius:12px; margin-bottom:25px; border:2px dashed #8e44ad;">
+                    <h4 style="margin-bottom:10px; color:#8e44ad;">नई काम की कैटेगरी जोड़ें</h4>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="newCatInput" placeholder="कैटेगरी का नाम (जैसे: प्लंबर, पेंटर)">
+                        <button onclick="adminAddCategory()" class="btn-main" style="width:auto; margin:0; padding:12px 25px; background:#8e44ad;">जोड़ें</button>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom:15px; color:#2c3e50; font-size:18px;">सभी यूज़र और कारीगर की लिस्ट</h4>
+                <div style="overflow-x:auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>रोल</th>
+                                <th>नाम, नंबर & पता</th>
+                                <th>आधार & रेटिंग</th>
+                                <th>बुकिंग स्टेटस</th>
+                                <th>एक्शन (कंट्रोल)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+    <div id="exitModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px; color:#2c3e50;">क्या आप ऐप बंद करना चाहते हैं?</h3>
+            <div style="display:flex; justify-content:space-around;">
+                <button onclick="closeApp()" class="btn-main" style="background:#e74c3c; width:45%;">हाँ</button>
+                <button onclick="document.getElementById('exitModal').style.display='none'" class="btn-main" style="background:#2ecc71; width:45%;">नहीं</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ratingModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="ratingTitle" style="color:#2c3e50;">रेटिंग दें</h3>
+            <p id="ratingDesc" style="font-size:14px; color:#666;">आपका अनुभव कैसा रहा?</p>
+            <div class="stars-container" id="starSelection">
+                <span class="star" onclick="setStar(1)">★</span><span class="star" onclick="setStar(2)">★</span><span class="star" onclick="setStar(3)">★</span><span class="star" onclick="setStar(4)">★</span><span class="star" onclick="setStar(5)">★</span>
+            </div>
+            <button onclick="submitRating()" class="btn-main" style="background:#2ecc71;">सबमिट करें</button>
+            <button onclick="closeRatingModal()" class="btn-main" style="background:#95a5a6; margin-top:10px;">बिना रेटिंग के बंद करें</button>
+        </div>
+    </div>
+
+    <div id="aadhaarModal" class="modal-overlay">
+        <div class="modal-content" style="max-width:500px;">
+            <h3 style="color:#2c3e50; margin-bottom:10px;">आधार कार्ड (वेरिफिकेशन)</h3>
+            <p id="aadhaarUserName" style="font-weight:bold; color:#667eea;"></p>
+            <img id="aadhaarViewImg" class="modal-img" src="">
+            <button onclick="document.getElementById('aadhaarModal').style.display='none'" class="btn-main" style="background:#e74c3c;">बंद करें</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🔴 FIREBASE CONNECTION (यहाँ अपनी Keys डालें)
+        // ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCRzhMYKceMEZCoT6kieh9XE7jNF_u73Ik",
+  authDomain: "kamgar-mela.firebaseapp.com",
+  databaseURL: "https://kamgar-mela-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kamgar-mela",
+  storageBucket: "kamgar-mela.firebasestorage.app",
+  messagingSenderId: "339505445879",
+  appId: "1:339505445879:web:ebc792bd39fdf4dd830cf2",
+  measurementId: "G-8J647RRT0Z"
+};
+        
+        // 🟢 Firebase चालू (Initialize) करें - इसे Uncomment करें जब आप अपनी Keys डाल लें
+        // firebase.initializeApp(firebaseConfig);
+        // const db = firebase.firestore();
+        // const auth = firebase.auth();
+        // const storage = firebase.storage();
+        // console.log("Firebase Connected Successfully!");
+        // ==========================================
+
+        /* ================= STATE & DATA ================= */
+        let currentUser = null; // No localStorage used for Auth!
+        let categories = ["ड्राइवर", "राज मिस्त्री", "मजदूर", "बढ़ई", "पॉलिश वाले", "टाइल्स कारीगर"];
+        const colorMap = { "ड्राइवर": "#fef9e7", "राज मिस्त्री": "#fdedec", "मजदूर": "#e8f8f5", "बढ़ई": "#fdf2e9", "पॉलिश वाले": "#f4ecf7", "टाइल्स कारीगर": "#ebf5fb" };
+        function getBgColor(cat) { return colorMap[cat] || "#f4f9f9"; }
+
+        // Dummy Data (Note: Aadhaar uses masked digits to comply with security rules)
+        let users = [
+            { id: 1, name: "सुरेश", address: "सिविल लाइन्स, मुरादाबाद", phone: "9876543210", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "15-08-1990", photo: "https://ui-avatars.com/api/?name=Suresh&background=random", works: [{cat:"राज मिस्त्री", exp:"5 साल"}, {cat:"टाइल्स", exp:"2 साल"}], bookedBy: null, bookDays: 0, ratingSum: 18, ratingCount: 4 },
+            { id: 2, name: "आरिफ", address: "कटघर, मुरादाबाद", phone: "9123456789", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "10-05-1992", photo: "https://ui-avatars.com/api/?name=Arif&background=random", works: [{cat:"बढ़ई", exp:"10 साल"}], bookedBy: 3, bookDays: 2, ratingSum: 20, ratingCount: 5 },
+            { id: 3, name: "रवि (ग्राहक)", address: "गांधी नगर, मुरादाबाद", phone: "9988776655", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "01-01-1995", photo: "https://ui-avatars.com/api/?name=Ravi&background=random", works: [], bookedBy: null, bookDays: 0, ratingSum: 10, ratingCount: 2 }
+        ];
+
+        /* ================= INITIALIZATION ================= */
+        window.onload = () => {
+            populateDOB(); populateCategories(); nav('home'); resetTimer();
+            toggleAuth('login');
+        };
+
+        function populateDOB() {
+            let d="<option value=''>दिन</option>", m="<option value=''>महीना</option>", y="<option value=''>वर्ष</option>";
+            for(let i=1; i<=31; i++) d+=`<option value="${i<10?'0'+i:i}">${i}</option>`;
+            for(let i=1; i<=12; i++) m+=`<option value="${i<10?'0'+i:i}">${i}</option>`;
+            for(let i=2010; i>=1950; i--) y+=`<option value="${i}">${i}</option>`;
+            document.querySelectorAll('.dob-d').forEach(el => el.innerHTML = d);
+            document.querySelectorAll('.dob-m').forEach(el => el.innerHTML = m);
+            document.querySelectorAll('.dob-y').forEach(el => el.innerHTML = y);
+        }
+
+        function populateCategories() {
+            let sel = document.getElementById('work_cat');
+            sel.innerHTML = `<option value="">काम चुनें...</option>`;
+            categories.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+        }
+
+        /* ================= NAVIGATION ================= */
+        let currentSection = 'home';
+        function nav(section, push = true) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
+            document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
+            document.getElementById(section).classList.add('active-section');
+            if(document.getElementById('nav-'+section)) document.getElementById('nav-'+section).classList.add('active');
+            
+            currentSection = section;
+            if(section === 'home') renderHome();
+            if(section === 'profile') {
+                if(!currentUser) { alert("कृपया पहले लॉगिन करें!"); nav('auth'); return; }
+                renderProfile();
+            }
+            if(section === 'auth' && currentUser) { nav('profile'); return; } 
+
+            if(push) history.pushState({ page: section }, '', '#' + section);
+        }
+
+        window.onpopstate = function(event) {
+            if(event.state && event.state.page) nav(event.state.page, false);
+            else {
+                if(currentSection === 'home') {
+                    document.getElementById('exitModal').style.display = 'flex';
+                    history.pushState({ page: 'home' }, '', '#home');
+                } else nav('home');
+            }
+        };
+        history.pushState({ page: 'home' }, '', '#home');
+        function closeApp() { window.close(); window.location.href = "about:blank"; }
+
+        /* ================= AUTO LOGOUT ================= */
+        let timeout;
+        function resetTimer() {
+            clearTimeout(timeout);
+            if(currentUser) timeout = setTimeout(() => { alert("सुरक्षा कारणों से ऑटो-लॉगआउट हो गया है।"); logout(); }, 15 * 60 * 1000);
+        }
+        document.onmousemove = resetTimer; document.ontouchstart = resetTimer;
+
+        /* ================= HOME RENDER ================= */
+        function getRating(user) { return user.ratingCount === 0 ? "0" : (user.ratingSum / user.ratingCount).toFixed(1); }
+
+        function renderHome() {
+            const container = document.getElementById('workersContainer');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            container.innerHTML = '';
+            let workers = users.filter(u => u.works.length > 0);
+
+            workers.forEach(w => {
+                let match = w.name.toLowerCase().includes(search) || (w.address && w.address.toLowerCase().includes(search)) || w.works.some(wk => wk.cat.toLowerCase().includes(search));
+                if(!match) return;
+
+                let isBooked = (w.bookedBy !== null);
+                let actionHtml = '';
+                if(isBooked) { actionHtml = `<div class="booked-badge">🚫 ${w.bookDays} दिन के लिए बुक है</div>`; } 
+                else {
+                    if(!currentUser) actionHtml = `<button onclick="nav('auth')" class="btn-main" style="padding:10px; font-size:14px; border-radius:20px;">लॉगिन / बुक करें</button>`;
+                    else actionHtml = `<p style="font-weight:700; margin:8px 0; color:#2c3e50;">📞 ${w.phone}</p><button onclick="bookWorker(${w.id})" class="btn-main" style="background:#2ecc71; padding:10px; font-size:14px; border-radius:20px;">✅ अभी बुक करें</button>`;
+                }
+
+                let skillsHtml = w.works.map(wk => `<span class="skill-badge">${wk.cat} (${wk.exp})</span>`).join('');
+                let cardColor = isBooked ? "#ffffff" : getBgColor(w.works[0].cat);
+                let addressHtml = w.address ? `<p style="font-size:13px; color:#666; margin-bottom:10px;">📍 ${w.address}</p>` : '';
+
+                let card = document.createElement('div');
+                card.className = 'worker-card'; card.style.background = cardColor;
+                card.innerHTML = `
+                    <div class="rating-badge">⭐ ${getRating(w)}</div>
+                    <img src="${w.photo}" class="profile-pic">
+                    <h3 style="color:#2c3e50; margin-bottom:5px; font-weight:700;">${w.name}</h3>
+                    ${addressHtml}
+                    <div class="skills-container">${skillsHtml}</div>
+                    <div style="margin-top:15px;">${actionHtml}</div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function bookWorker(workerId) {
+            let days = prompt("कितने दिन के लिए बुक करना चाहते हैं?");
+            if(days > 0) {
+                let worker = users.find(u => u.id === workerId);
+                worker.bookedBy = currentUser.id; worker.bookDays = parseInt(days);
+                alert(`${worker.name} को बुक कर लिया गया है।`); renderHome();
+            }
+        }
+
+        /* ================= AUTHENTICATION (NO LOCAL STORAGE) ================= */
+        function toggleAuth(type) {
+            document.getElementById('loginBox').style.display = type==='login'?'block':'none';
+            document.getElementById('registerBox').style.display = type==='register'?'block':'none';
+            document.getElementById('forgotBox').style.display = type==='forgot'?'block':'none';
+        }
+
+        let tempAadhaarPhoto = "";
+        function previewAadhaarReg(e) {
+            let file = e.target.files[0];
+            if(file) {
+                tempAadhaarPhoto = URL.createObjectURL(file);
+                let img = document.getElementById('reg_aadhaar_preview');
+                img.src = tempAadhaarPhoto; img.style.display = 'inline-block';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            let phone = document.getElementById('r_phone').value;
+            let aadhaar = document.getElementById('r_aadhaar').value;
+            
+            if(users.some(u => u.phone === phone)) { alert("यह मोबाइल नंबर पहले से रजिस्टर्ड है!"); return; }
+            if(users.some(u => u.aadhaar === aadhaar)) { alert("यह आधार कार्ड नंबर पहले से रजिस्टर्ड है!"); return; }
+            if(!tempAadhaarPhoto) { alert("कृपया आधार कार्ड की फोटो अपलोड करें!"); return; }
+
+            let dob = `${document.getElementById('r_day').value}-${document.getElementById('r_month').value}-${document.getElementById('r_year').value}`;
+            let newUser = {
+                id: Date.now(), 
+                name: document.getElementById('r_name').value, 
+                address: document.getElementById('r_address').value,
+                phone: phone, aadhaar: aadhaar, pwd: document.getElementById('r_pwd').value,
+                dob: dob, photo: "https://ui-avatars.com/api/?name=" + document.getElementById('r_name').value + "&background=random",
+                aadhaarPhoto: tempAadhaarPhoto, works: [], bookedBy: null, bookDays: 0, ratingSum: 0, ratingCount: 0
+            };
+            
+            users.push(newUser); currentUser = newUser;
+            updateNav(); alert("रजिस्ट्रेशन सफल!"); nav('profile');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let user = users.find(u => u.phone === document.getElementById('l_phone').value && u.pwd === document.getElementById('l_pwd').value);
+            if(user) { currentUser = user; updateNav(); nav('home'); }
+            else alert("गलत मोबाइल नंबर या पासवर्ड!");
+        }
+
+        function handleForgot(e) {
+            e.preventDefault();
+            let phone = document.getElementById('f_phone').value;
+            let dob = `${document.getElementById('f_day').value}-${document.getElementById('f_month').value}-${document.getElementById('f_year').value}`;
+            let user = users.find(u => u.phone === phone && u.dob === dob);
+            if(user) { alert(`पहचान कन्फर्म! आपका पासवर्ड है: ${user.pwd}`); toggleAuth('login'); }
+            else alert("जानकारी मैच नहीं हुई!");
+        }
+
+        function updateNav() {
+            document.getElementById('nav-auth').style.display = currentUser ? 'none' : 'inline-block';
+            document.getElementById('nav-profile').style.display = currentUser ? 'inline-block' : 'none';
+            resetTimer();
+        }
+        function logout() { currentUser = null; updateNav(); nav('home'); toggleAuth('login'); }
+
+        /* ================= PROFILE & DASHBOARDS ================= */
+        function renderProfile() {
+            if(!currentUser) return;
+            document.getElementById('p_name').innerText = currentUser.name;
+            document.getElementById('p_photo_preview').src = currentUser.photo;
+            document.getElementById('p_phone_input').value = currentUser.phone;
+            document.getElementById('p_address_input').value = currentUser.address || "";
+            document.getElementById('p_rating').innerText = getRating(currentUser);
+
+            let myBookings = users.filter(u => u.bookedBy === currentUser.id);
+            let custDash = document.getElementById('customerDashboard');
+            let custList = document.getElementById('myBookingsList');
+            custList.innerHTML = '';
+            if(myBookings.length > 0) {
+                custDash.style.display = 'block';
+                myBookings.forEach(w => {
+                    custList.innerHTML += `
+                        <div class="dashboard-card cust-dash">
+                            <h4 style="color:#d35400;">👷 ${w.name}</h4>
+                            <p style="margin:5px 0;">बुक दिन: <b>${w.bookDays}</b> | फोन: ${w.phone}</p>
+                            <div class="action-row">
+                                <button onclick="viewAadhaar(${w.id})" class="btn-small btn-aadhaar">आधार देखें</button>
+                                <button onclick="editSlot(${w.id})" class="btn-small" style="background:#f39c12;">दिन बदलें</button>
+                                <button onclick="openRatingModal(${w.id}, 'worker')" class="btn-small" style="background:#e74c3c;">फ्री करें</button>
+                            </div>
+                        </div>`;
+                });
+            } else { custDash.style.display = 'none'; }
+
+            let workerDash = document.getElementById('workerDashboard');
+            let workerList = document.getElementById('whoBookedMeList');
+            workerList.innerHTML = '';
+            if(currentUser.bookedBy !== null) {
+                workerDash.style.display = 'block';
+                let customer = users.find(u => u.id === currentUser.bookedBy);
+                workerList.innerHTML = `
+                    <div class="dashboard-card worker-dash">
+                        <h4 style="color:#27ae60;">👤 ग्राहक: ${customer.name}</h4>
+                        <p style="margin:5px 0;">फोन: ${customer.phone} | काम के दिन: <b>${currentUser.bookDays}</b></p>
+                        <div class="action-row">
+                            <button onclick="viewAadhaar(${customer.id})" class="btn-small btn-aadhaar">ग्राहक का आधार देखें</button>
+                            <button onclick="openRatingModal(${customer.id}, 'customer')" class="btn-small" style="background:#2ecc71;">काम पूरा हुआ (फ्री करें)</button>
+                        </div>
+                    </div>`;
+            } else { workerDash.style.display = 'none'; }
+
+            let skillsList = document.getElementById('mySkillsList');
+            if(currentUser.works.length === 0) {
+                skillsList.innerHTML = `<p style="color:#e74c3c; font-weight:bold;">आप अभी लिस्ट में नहीं दिख रहे हैं। नीचे काम जोड़ें।</p>`;
+            } else {
+                skillsList.innerHTML = currentUser.works.map((w, index) => `
+                    <div style="background:#fff; border:1px solid #ddd; padding:12px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span><b style="color:#667eea;">${w.cat}</b> (अनुभव: ${w.exp})</span>
+                        <button onclick="removeWork(${index})" class="btn-small" style="background:#e74c3c; border-radius:20px;">हटाएं</button>
+                    </div>`).join('');
+            }
+        }
+
+        function updateProfilePic(e) {
+            let file = e.target.files[0];
+            if(file) { currentUser.photo = URL.createObjectURL(file); document.getElementById('p_photo_preview').src = currentUser.photo; }
+        }
+        function updatePhone() {
+            let newPhone = document.getElementById('p_phone_input').value;
+            if(newPhone) { currentUser.phone = newPhone; alert("नंबर अपडेट हो गया!"); renderProfile(); renderHome(); }
+        }
+        function updateAddress() {
+            let newAddress = document.getElementById('p_address_input').value;
+            if(newAddress) { currentUser.address = newAddress; alert("पता अपडेट हो गया!"); renderProfile(); renderHome(); }
+        }
+        function addWork() {
+            let cat = document.getElementById('work_cat').value;
+            let exp = document.getElementById('work_exp').value;
+            if(!cat || !exp) { alert("कृपया काम और अनुभव दोनों भरें!"); return; }
+            currentUser.works.push({cat: cat, exp: exp});
+            document.getElementById('work_cat').value = ''; document.getElementById('work_exp').value = ''; renderProfile(); renderHome();
+        }
+        function removeWork(index) { currentUser.works.splice(index, 1); renderProfile(); renderHome(); }
+        function editSlot(workerId) {
+            let worker = users.find(u => u.id === workerId);
+            let newDays = prompt("नया दिन डालें:", worker.bookDays);
+            if(newDays > 0) { worker.bookDays = parseInt(newDays); alert("स्लॉट अपडेट हो गया!"); renderProfile(); renderHome(); }
+        }
+
+        /* ================= AADHAAR VIEW MODAL ================= */
+        function viewAadhaar(userId) {
+            let user = users.find(u => u.id === userId);
+            document.getElementById('aadhaarUserName').innerText = user.name + " का आधार कार्ड";
+            document.getElementById('aadhaarViewImg').src = user.aadhaarPhoto;
+            document.getElementById('aadhaarModal').style.display = 'flex';
+        }
+
+        /* ================= RATING SYSTEM ================= */
+        let targetUserId = null; let ratingType = ''; let selectedStars = 0;
+
+        function openRatingModal(id, type) {
+            targetUserId = id; ratingType = type; selectedStars = 0;
+            let targetUser = users.find(u => u.id === id);
+            document.getElementById('ratingTitle').innerText = `${targetUser.name} को रेट करें`;
+            setStar(0); document.getElementById('ratingModal').style.display = 'flex';
+        }
+        function setStar(num) {
+            selectedStars = num;
+            document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('active', i < num));
+        }
+        function submitRating() {
+            if(selectedStars === 0) { alert("कृपया कम से कम 1 स्टार चुनें!"); return; }
+            processRelease(selectedStars);
+        }
+        function closeRatingModal() {
+            if(confirm(ratingType === 'admin' ? "बिना रेट किये बंद करें?" : "क्या आप बिना रेटिंग दिए स्लॉट फ्री करना चाहते हैं?")) processRelease(0);
+        }
+
+        function processRelease(stars) {
+            let targetUser = users.find(u => u.id === targetUserId);
+            document.getElementById('ratingModal').style.display = 'none';
+
+            if(stars > 0) {
+                targetUser.ratingSum += stars; targetUser.ratingCount += 1;
+                alert(`आपने ${targetUser.name} को ${stars} स्टार दिए!`);
+            }
+
+            if(ratingType === 'admin') { renderAdminDashboard(); return; } 
+
+            let worker = ratingType === 'worker' ? targetUser : currentUser;
+            worker.bookedBy = null; worker.bookDays = 0;
+            renderProfile(); renderHome();
+        }
+
+        /* ================= MASTER ADMIN SYSTEM ================= */
+        function toggleAdminAuth(type) {
+            document.getElementById('adminLoginBox').style.display = type==='login'?'block':'none';
+            document.getElementById('adminForgotBox').style.display = type==='forgot'?'block':'none';
+        }
+        function adminLogin() {
+            if(document.getElementById('a_pwd').value === "142212") {
+                document.getElementById('adminLoginBox').style.display = 'none';
+                document.getElementById('adminDashboardBox').style.display = 'block';
+                renderAdminDashboard();
+            } else alert("गलत पासवर्ड!");
+        }
+        function adminForgot() {
+            let dob = `${document.getElementById('af_day').value}-${document.getElementById('af_month').value}-${document.getElementById('af_year').value}`;
+            if(dob === "12-07-1994") { alert("एडमिन पासवर्ड है: 142212"); toggleAdminAuth('login'); }
+            else alert("गलत जन्म तिथि!");
+        }
+        function adminLogout() {
+            document.getElementById('adminDashboardBox').style.display = 'none';
+            document.getElementById('adminLoginBox').style.display = 'block';
+            document.getElementById('a_pwd').value = '';
+        }
+
+        function adminAddCategory() {
+            let newCat = document.getElementById('newCatInput').value.trim();
+            if(newCat) {
+                categories.push(newCat); populateCategories();
+                document.getElementById('newCatInput').value = '';
+                alert(`कैटेगरी '${newCat}' जोड़ दी गई है!`);
+            }
+        }
+
+        function renderAdminDashboard() {
+            let tbody = document.getElementById('adminUsersTable');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                let role = u.works.length > 0 ? `<span style="color:#2980b9;font-weight:bold;">कारीगर</span>` : `<span style="color:#e67e22;font-weight:bold;">ग्राहक</span>`;
+                let status = u.bookedBy ? `<span style="color:red; font-weight:bold;">बुक है</span>` : `<span style="color:green; font-weight:bold;">फ्री है</span>`;
+                let addressTxt = u.address ? u.address : "पता नहीं दिया";
+
+                let actions = `
+                    <button onclick="viewAadhaar(${u.id})" class="btn-small btn-aadhaar" style="margin-bottom:5px;">आधार देखें</button>
+                    <button onclick="openRatingModal(${u.id}, 'admin')" class="btn-small" style="background:#f1c40f; color:#000; margin-bottom:5px;">रेटिंग दें</button>
+                    <button onclick="adminDeleteUser(${u.id})" class="btn-small" style="background:#e74c3c; margin-bottom:5px;">डिलीट</button>
+                `;
+                if(u.bookedBy) {
+                    actions += `<button onclick="adminFreeSlot(${u.id})" class="btn-small" style="background:#2ecc71;">स्लॉट फ्री</button>`;
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${role}</td>
+                    <td><b>${u.name}</b><br><span style="color:#666;">📞 ${u.phone}</span><br><span style="font-size:12px; color:#888;">📍 ${addressTxt}</span></td>
+                    <td>⭐ ${getRating(u)}</td>
+                    <td>${status}</td>
+                    <td><div style="display:flex; flex-direction:column; gap:5px;">${actions}</div></td>
+                </tr>`;
+            });
+        }
+
+        function adminDeleteUser(id) {
+            if(confirm("क्या आप पक्का इस यूज़र को प्लेटफॉर्म से डिलीट/ब्लॉक करना चाहते हैं?")) {
+                users = users.filter(u => u.id !== id); renderAdminDashboard(); renderHome(); alert("यूज़र डिलीट हो गया!");
+            }
+        }
+        function adminFreeSlot(id) {
+            if(confirm("क्या आप इस कारीगर का बुकिंग स्लॉट जबरन फ्री करना चाहते हैं?")) {
+                let worker = users.find(u => u.id === id);
+                worker.bookedBy = null; worker.bookDays = 0;
+                renderAdminDashboard(); renderHome(); alert("स्लॉट फ्री कर दिया गया है!");
+            }
+        }
+
+    </script>
+</body>
+</html>
