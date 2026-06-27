@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>कामगार कनेक्ट - मास्टर प्रो</title>
+    <title>कामगार कनेक्ट - मास्टर प्रो (Live)</title>
     
-    <!-- Firebase CDN (Version 8) -->
+    <!-- Firebase CDNs (Version 8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
@@ -16,13 +15,12 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        /* Vibrant Professional Background */
         body { 
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             color: #333; min-height: 100vh; overflow-x: hidden; 
         }
 
-        /* Header - Stylish Glass Effect */
+        /* Header */
         header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; 
@@ -46,7 +44,7 @@
         .active-section { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Boxes & Forms (Colorful) */
+        /* Boxes & Forms */
         .box { 
             background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); max-width: 600px; margin: 0 auto 20px auto; 
@@ -67,14 +65,16 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 14px; border: none; 
             border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; 
         }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4); }
+        .btn-main:disabled { background: #95a5a6; cursor: not-allowed; transform: none; box-shadow: none; }
+        
         .link { text-align: center; margin-top: 15px; color: #667eea; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: underline; }
 
         /* File Upload */
         .file-upload { border: 2px dashed #667eea; border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; background: #f8faff; transition: 0.3s; position: relative; }
         .file-upload input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* Grid & Stylish Cards */
+        /* Grid & Cards */
         .search-bar { 
             width: 100%; padding: 16px; border-radius: 30px; border: 2px solid #ddd; font-size: 16px; 
             margin-bottom: 25px; text-align: center; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s;
@@ -138,8 +138,10 @@
         
         <!-- ================= 1. HOME ================= -->
         <div id="home" class="section active-section">
-            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 कारीगर खोजें (जैसे: ड्राइवर, राज मिस्त्री, या शहर का नाम...)" onkeyup="renderHome()">
-            <div class="workers-grid" id="workersContainer"></div>
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 कारीगर खोजें (जैसे: ड्राइवर, राज मिस्त्री, शहर का नाम...)" onkeyup="renderHome()">
+            <div class="workers-grid" id="workersContainer">
+                <p style="text-align:center; width:100%; grid-column:1/-1;">डेटा लोड हो रहा है... कृपया रुकें ⏳</p>
+            </div>
         </div>
 
         <!-- ================= 2. AUTH SECTION ================= -->
@@ -150,7 +152,7 @@
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="l_phone" required></div>
                     <div class="form-group"><label>पासवर्ड</label><input type="password" id="l_pwd" required></div>
-                    <button type="submit" class="btn-main">लॉगिन</button>
+                    <button type="submit" class="btn-main" id="btnLogin">लॉगिन</button>
                 </form>
                 <div class="link" onclick="toggleAuth('register')">नया अकाउंट बनाएँ</div>
                 <div class="link" onclick="toggleAuth('forgot')" style="color:#e74c3c;">पासवर्ड भूल गए?</div>
@@ -161,7 +163,7 @@
                 <h2>नया अकाउंट बनाएँ</h2>
                 <form onsubmit="handleRegister(event)">
                     <div class="form-group"><label>पूरा नाम</label><input type="text" id="r_name" required></div>
-                    <div class="form-group"><label>पूरा पता (Address)</label><input type="text" id="r_address" placeholder="अपना गाँव/शहर और मोहल्ला लिखें" required></div>
+                    <div class="form-group"><label>पूरा पता (Address)</label><input type="text" id="r_address" placeholder="गाँव/शहर और मोहल्ला" required></div>
                     <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="r_phone" required></div>
                     <div class="form-group">
                         <label>जन्म तिथि (पासवर्ड रिसेट के लिए)</label>
@@ -182,7 +184,7 @@
                             <img id="reg_aadhaar_preview" style="display:none; width:100px; margin-top:10px; border-radius:5px;">
                         </div>
                     </div>
-                    <button type="submit" class="btn-main" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color:#000;">रजिस्टर करें</button>
+                    <button type="submit" class="btn-main" id="btnRegister" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color:#000;">रजिस्टर करें (Server में सेव करें)</button>
                 </form>
                 <div class="link" onclick="toggleAuth('login')">लॉगिन पर वापस जाएं</div>
             </div>
@@ -214,7 +216,7 @@
                     <img id="p_photo_preview" src="" class="profile-pic" style="border-color:#fff; width:100px; height:100px;">
                     <h2 id="p_name" style="margin:5px 0 0 0; color:#333;">नाम</h2>
                     <div style="font-size:16px; font-weight:bold; margin-top:5px; color:#555;">⭐ <span id="p_rating">0</span>/5 रेटिंग</div>
-                    <br><label style="color:#667eea; cursor:pointer; font-weight:700; background:#fff; padding:5px 15px; border-radius:20px;">📷 प्रोफाइल फोटो बदलें<input type="file" accept="image/*" style="display:none;" onchange="updateProfilePic(event)"></label>
+                    <br><label style="color:#667eea; cursor:pointer; font-weight:700; background:#fff; padding:5px 15px; border-radius:20px;">📷 प्रोफाइल फोटो बदलें<input type="file" accept="image/*" style="display:none;" onchange="updateProfilePic(event)" id="profilePicInput"></label>
                 </div>
 
                 <!-- Update Phone & Address -->
@@ -223,14 +225,14 @@
                         <label>मोबाइल नंबर अपडेट करें:</label>
                         <div style="display:flex; gap:10px;">
                             <input type="tel" id="p_phone_input">
-                            <button onclick="updatePhone()" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
+                            <button onclick="updateProfileField('phone', 'p_phone_input')" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <label>पूरा पता (Address) अपडेट करें:</label>
                         <div style="display:flex; gap:10px;">
                             <input type="text" id="p_address_input" placeholder="अपना सही पता लिखें">
-                            <button onclick="updateAddress()" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
+                            <button onclick="updateProfileField('address', 'p_address_input')" class="btn-main" style="width:auto; margin:0; padding:10px 20px;">सेव</button>
                         </div>
                     </div>
                 </div>
@@ -268,7 +270,7 @@
         <div id="admin" class="section">
             <div class="box" id="adminLoginBox">
                 <h2>सुपर एडमिन लॉगिन</h2>
-                <input type="password" id="a_pwd" placeholder="पासवर्ड डालें" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:2px solid #ccc;">
+                <input type="password" id="a_pwd" placeholder="पासवर्ड डालें (142212)" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:2px solid #ccc;">
                 <button onclick="adminLogin()" class="btn-main" style="background:#34495e;">लॉगिन</button>
                 <div class="link" onclick="toggleAdminAuth('forgot')" style="color:#e74c3c;">पासवर्ड भूल गए?</div>
             </div>
@@ -352,44 +354,67 @@
 
     <script>
         // ==========================================
-        // 🔴 FIREBASE CONNECTION (यहाँ अपनी Keys डालें)
+        // 🔴 FIREBASE CONNECTION (LIVE)
         // ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCRzhMYKceMEZCoT6kieh9XE7jNF_u73Ik",
-  authDomain: "kamgar-mela.firebaseapp.com",
-  databaseURL: "https://kamgar-mela-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "kamgar-mela",
-  storageBucket: "kamgar-mela.firebasestorage.app",
-  messagingSenderId: "339505445879",
-  appId: "1:339505445879:web:ebc792bd39fdf4dd830cf2",
-  measurementId: "G-8J647RRT0Z"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRzhMYKceMEZCoT6kieh9XE7jNF_u73Ik",
+            authDomain: "kamgar-mela.firebaseapp.com",
+            databaseURL: "https://kamgar-mela-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kamgar-mela",
+            storageBucket: "kamgar-mela.firebasestorage.app",
+            messagingSenderId: "339505445879",
+            appId: "1:339505445879:web:ebc792bd39fdf4dd830cf2"
+        };
         
-        // 🟢 Firebase चालू (Initialize) करें - इसे Uncomment करें जब आप अपनी Keys डाल लें
-        // firebase.initializeApp(firebaseConfig);
-        // const db = firebase.firestore();
-        // const auth = firebase.auth();
-        // const storage = firebase.storage();
-        // console.log("Firebase Connected Successfully!");
-        // ==========================================
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        
+        console.log("🔥 Firebase Connected!");
 
         /* ================= STATE & DATA ================= */
-        let currentUser = null; // No localStorage used for Auth!
+        let users = [];
+        let currentUser = null; 
+        let currentUserId = sessionStorage.getItem('sessionUID'); // Only session-level persistence (No LocalStorage)
+        let isAdminActive = sessionStorage.getItem('adminActive') === 'true';
+
         let categories = ["ड्राइवर", "राज मिस्त्री", "मजदूर", "बढ़ई", "पॉलिश वाले", "टाइल्स कारीगर"];
         const colorMap = { "ड्राइवर": "#fef9e7", "राज मिस्त्री": "#fdedec", "मजदूर": "#e8f8f5", "बढ़ई": "#fdf2e9", "पॉलिश वाले": "#f4ecf7", "टाइल्स कारीगर": "#ebf5fb" };
-        function getBgColor(cat) { return colorMap[cat] || "#f4f9f9"; }
+        function getBgColor(cat) { return colorMap[cat] || "#ffffff"; }
 
-        // Dummy Data (Note: Aadhaar uses masked digits to comply with security rules)
-        let users = [
-            { id: 1, name: "सुरेश", address: "सिविल लाइन्स, मुरादाबाद", phone: "9876543210", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "15-08-1990", photo: "https://ui-avatars.com/api/?name=Suresh&background=random", works: [{cat:"राज मिस्त्री", exp:"5 साल"}, {cat:"टाइल्स", exp:"2 साल"}], bookedBy: null, bookDays: 0, ratingSum: 18, ratingCount: 4 },
-            { id: 2, name: "आरिफ", address: "कटघर, मुरादाबाद", phone: "9123456789", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "10-05-1992", photo: "https://ui-avatars.com/api/?name=Arif&background=random", works: [{cat:"बढ़ई", exp:"10 साल"}], bookedBy: 3, bookDays: 2, ratingSum: 20, ratingCount: 5 },
-            { id: 3, name: "रवि (ग्राहक)", address: "गांधी नगर, मुरादाबाद", phone: "9988776655", aadhaar:"[Aadhaar Redacted]", aadhaarPhoto: "https://via.placeholder.com/400x250.png?text=Aadhaar+Front+Card", pwd: "123", dob: "01-01-1995", photo: "https://ui-avatars.com/api/?name=Ravi&background=random", works: [], bookedBy: null, bookDays: 0, ratingSum: 10, ratingCount: 2 }
-        ];
+        /* ================= REAL-TIME DB LISTENER (MAGIC) ================= */
+        // यह फंक्शन Firebase से डेटा को रियल-टाइम में खींचता है।
+        db.collection("users").onSnapshot((snapshot) => {
+            users = [];
+            snapshot.forEach((doc) => {
+                users.push({ docId: doc.id, ...doc.data() });
+            });
+
+            // Restore Current User Session
+            if (currentUserId) {
+                currentUser = users.find(u => u.docId === currentUserId);
+                if (!currentUser) logout(); // If user was deleted by admin
+            }
+
+            // Update UI Dynamically without Refreshing
+            if(currentSection === 'home') renderHome();
+            if(currentSection === 'profile') renderProfile();
+            if(currentSection === 'admin' && isAdminActive) renderAdminDashboard();
+        });
+
+        // Global Categories Setup
+        db.collection("settings").doc("categories").onSnapshot((doc) => {
+            if(doc.exists) { categories = doc.data().list; } 
+            else { db.collection("settings").doc("categories").set({ list: categories }); }
+            populateCategories();
+        });
 
         /* ================= INITIALIZATION ================= */
         window.onload = () => {
-            populateDOB(); populateCategories(); nav('home'); resetTimer();
-            toggleAuth('login');
+            populateDOB(); 
+            nav('home'); 
+            resetTimer();
         };
 
         function populateDOB() {
@@ -401,7 +426,6 @@ const firebaseConfig = {
             document.querySelectorAll('.dob-m').forEach(el => el.innerHTML = m);
             document.querySelectorAll('.dob-y').forEach(el => el.innerHTML = y);
         }
-
         function populateCategories() {
             let sel = document.getElementById('work_cat');
             sel.innerHTML = `<option value="">काम चुनें...</option>`;
@@ -422,7 +446,15 @@ const firebaseConfig = {
                 if(!currentUser) { alert("कृपया पहले लॉगिन करें!"); nav('auth'); return; }
                 renderProfile();
             }
-            if(section === 'auth' && currentUser) { nav('profile'); return; } 
+            if(section === 'auth') {
+                if(currentUser) { nav('profile'); return; }
+                toggleAuth('login');
+            }
+            if(section === 'admin' && isAdminActive) {
+                document.getElementById('adminLoginBox').style.display = 'none';
+                document.getElementById('adminDashboardBox').style.display = 'block';
+                renderAdminDashboard();
+            }
 
             if(push) history.pushState({ page: section }, '', '#' + section);
         }
@@ -454,7 +486,13 @@ const firebaseConfig = {
             const container = document.getElementById('workersContainer');
             const search = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
-            let workers = users.filter(u => u.works.length > 0);
+            
+            let workers = users.filter(u => u.works && u.works.length > 0);
+            
+            if(workers.length === 0) {
+                container.innerHTML = `<p style="text-align:center; width:100%; grid-column:1/-1; color:#7f8c8d;">अभी तक कोई कारीगर रजिस्टर्ड नहीं है।</p>`;
+                return;
+            }
 
             workers.forEach(w => {
                 let match = w.name.toLowerCase().includes(search) || (w.address && w.address.toLowerCase().includes(search)) || w.works.some(wk => wk.cat.toLowerCase().includes(search));
@@ -465,11 +503,13 @@ const firebaseConfig = {
                 if(isBooked) { actionHtml = `<div class="booked-badge">🚫 ${w.bookDays} दिन के लिए बुक है</div>`; } 
                 else {
                     if(!currentUser) actionHtml = `<button onclick="nav('auth')" class="btn-main" style="padding:10px; font-size:14px; border-radius:20px;">लॉगिन / बुक करें</button>`;
-                    else actionHtml = `<p style="font-weight:700; margin:8px 0; color:#2c3e50;">📞 ${w.phone}</p><button onclick="bookWorker(${w.id})" class="btn-main" style="background:#2ecc71; padding:10px; font-size:14px; border-radius:20px;">✅ अभी बुक करें</button>`;
+                    else actionHtml = `<p style="font-weight:700; margin:8px 0; color:#2c3e50;">📞 ${w.phone}</p><button onclick="bookWorker('${w.docId}')" class="btn-main" style="background:#2ecc71; padding:10px; font-size:14px; border-radius:20px;">✅ अभी बुक करें</button>`;
                 }
 
                 let skillsHtml = w.works.map(wk => `<span class="skill-badge">${wk.cat} (${wk.exp})</span>`).join('');
                 let cardColor = isBooked ? "#ffffff" : getBgColor(w.works[0].cat);
+                
+                // Address shown to EVERYONE
                 let addressHtml = w.address ? `<p style="font-size:13px; color:#666; margin-bottom:10px;">📍 ${w.address}</p>` : '';
 
                 let card = document.createElement('div');
@@ -485,34 +525,50 @@ const firebaseConfig = {
             });
         }
 
-        function bookWorker(workerId) {
+        async function bookWorker(workerDocId) {
             let days = prompt("कितने दिन के लिए बुक करना चाहते हैं?");
             if(days > 0) {
-                let worker = users.find(u => u.id === workerId);
-                worker.bookedBy = currentUser.id; worker.bookDays = parseInt(days);
-                alert(`${worker.name} को बुक कर लिया गया है।`); renderHome();
+                try {
+                    await db.collection("users").doc(workerDocId).update({
+                        bookedBy: currentUser.docId, 
+                        bookDays: parseInt(days)
+                    });
+                    alert(`कारीगर को बुक कर लिया गया है।`);
+                } catch(e) { alert("Error: " + e.message); }
             }
         }
 
-        /* ================= AUTHENTICATION (NO LOCAL STORAGE) ================= */
+        /* ================= AUTHENTICATION (FIREBASE ASYNC) ================= */
         function toggleAuth(type) {
             document.getElementById('loginBox').style.display = type==='login'?'block':'none';
             document.getElementById('registerBox').style.display = type==='register'?'block':'none';
             document.getElementById('forgotBox').style.display = type==='forgot'?'block':'none';
         }
 
-        let tempAadhaarPhoto = "";
+        let tempAadhaarPhoto = null;
         function previewAadhaarReg(e) {
             let file = e.target.files[0];
             if(file) {
-                tempAadhaarPhoto = URL.createObjectURL(file);
+                tempAadhaarPhoto = file;
                 let img = document.getElementById('reg_aadhaar_preview');
-                img.src = tempAadhaarPhoto; img.style.display = 'inline-block';
+                img.src = URL.createObjectURL(file); img.style.display = 'inline-block';
             }
         }
 
-        function handleRegister(e) {
+        // Helper to convert Image to Base64 (Since Storage Rules might block beginners, Base64 is perfectly robust for this)
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleRegister(e) {
             e.preventDefault();
+            let btn = document.getElementById('btnRegister');
+            
             let phone = document.getElementById('r_phone').value;
             let aadhaar = document.getElementById('r_aadhaar').value;
             
@@ -520,24 +576,49 @@ const firebaseConfig = {
             if(users.some(u => u.aadhaar === aadhaar)) { alert("यह आधार कार्ड नंबर पहले से रजिस्टर्ड है!"); return; }
             if(!tempAadhaarPhoto) { alert("कृपया आधार कार्ड की फोटो अपलोड करें!"); return; }
 
-            let dob = `${document.getElementById('r_day').value}-${document.getElementById('r_month').value}-${document.getElementById('r_year').value}`;
-            let newUser = {
-                id: Date.now(), 
-                name: document.getElementById('r_name').value, 
-                address: document.getElementById('r_address').value,
-                phone: phone, aadhaar: aadhaar, pwd: document.getElementById('r_pwd').value,
-                dob: dob, photo: "https://ui-avatars.com/api/?name=" + document.getElementById('r_name').value + "&background=random",
-                aadhaarPhoto: tempAadhaarPhoto, works: [], bookedBy: null, bookDays: 0, ratingSum: 0, ratingCount: 0
-            };
-            
-            users.push(newUser); currentUser = newUser;
-            updateNav(); alert("रजिस्ट्रेशन सफल!"); nav('profile');
+            btn.disabled = true; btn.innerText = "सर्वर से जुड़ रहे हैं... ⏳";
+
+            try {
+                let base64Aadhaar = await fileToBase64(tempAadhaarPhoto);
+                let dob = `${document.getElementById('r_day').value}-${document.getElementById('r_month').value}-${document.getElementById('r_year').value}`;
+                
+                let newUser = {
+                    name: document.getElementById('r_name').value, 
+                    address: document.getElementById('r_address').value,
+                    phone: phone, 
+                    aadhaar: aadhaar, 
+                    pwd: document.getElementById('r_pwd').value,
+                    dob: dob, 
+                    photo: "https://ui-avatars.com/api/?name=" + encodeURIComponent(document.getElementById('r_name').value) + "&background=random",
+                    aadhaarPhoto: base64Aadhaar, 
+                    works: [], bookedBy: null, bookDays: 0, ratingSum: 0, ratingCount: 0
+                };
+                
+                let docRef = await db.collection("users").add(newUser);
+                
+                currentUserId = docRef.id;
+                sessionStorage.setItem('sessionUID', currentUserId);
+                updateNav(); alert("आपका अकाउंट Firebase Server पर सफलता पूर्वक बन गया!"); nav('profile');
+                e.target.reset(); document.getElementById('reg_aadhaar_preview').style.display = 'none';
+
+            } catch (err) {
+                alert("एरर: " + err.message + "\n(अगर Permission Denied आ रहा है, तो Firebase Database Rules 'true' करें)");
+            } finally {
+                btn.disabled = false; btn.innerText = "रजिस्टर करें";
+            }
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            let user = users.find(u => u.phone === document.getElementById('l_phone').value && u.pwd === document.getElementById('l_pwd').value);
-            if(user) { currentUser = user; updateNav(); nav('home'); }
+            let phone = document.getElementById('l_phone').value;
+            let pwd = document.getElementById('l_pwd').value;
+            
+            let user = users.find(u => u.phone === phone && u.pwd === pwd);
+            if(user) { 
+                currentUserId = user.docId;
+                sessionStorage.setItem('sessionUID', currentUserId);
+                updateNav(); nav('home'); 
+            }
             else alert("गलत मोबाइल नंबर या पासवर्ड!");
         }
 
@@ -551,11 +632,14 @@ const firebaseConfig = {
         }
 
         function updateNav() {
-            document.getElementById('nav-auth').style.display = currentUser ? 'none' : 'inline-block';
-            document.getElementById('nav-profile').style.display = currentUser ? 'inline-block' : 'none';
+            document.getElementById('nav-auth').style.display = currentUserId ? 'none' : 'inline-block';
+            document.getElementById('nav-profile').style.display = currentUserId ? 'inline-block' : 'none';
             resetTimer();
         }
-        function logout() { currentUser = null; updateNav(); nav('home'); toggleAuth('login'); }
+        function logout() { 
+            currentUserId = null; sessionStorage.removeItem('sessionUID');
+            updateNav(); nav('home'); toggleAuth('login'); 
+        }
 
         /* ================= PROFILE & DASHBOARDS ================= */
         function renderProfile() {
@@ -566,7 +650,8 @@ const firebaseConfig = {
             document.getElementById('p_address_input').value = currentUser.address || "";
             document.getElementById('p_rating').innerText = getRating(currentUser);
 
-            let myBookings = users.filter(u => u.bookedBy === currentUser.id);
+            // Dashboards
+            let myBookings = users.filter(u => u.bookedBy === currentUser.docId);
             let custDash = document.getElementById('customerDashboard');
             let custList = document.getElementById('myBookingsList');
             custList.innerHTML = '';
@@ -578,9 +663,9 @@ const firebaseConfig = {
                             <h4 style="color:#d35400;">👷 ${w.name}</h4>
                             <p style="margin:5px 0;">बुक दिन: <b>${w.bookDays}</b> | फोन: ${w.phone}</p>
                             <div class="action-row">
-                                <button onclick="viewAadhaar(${w.id})" class="btn-small btn-aadhaar">आधार देखें</button>
-                                <button onclick="editSlot(${w.id})" class="btn-small" style="background:#f39c12;">दिन बदलें</button>
-                                <button onclick="openRatingModal(${w.id}, 'worker')" class="btn-small" style="background:#e74c3c;">फ्री करें</button>
+                                <button onclick="viewAadhaar('${w.docId}')" class="btn-small btn-aadhaar">आधार देखें</button>
+                                <button onclick="editSlot('${w.docId}')" class="btn-small" style="background:#f39c12;">दिन बदलें</button>
+                                <button onclick="openRatingModal('${w.docId}', 'worker')" class="btn-small" style="background:#e74c3c;">फ्री करें</button>
                             </div>
                         </div>`;
                 });
@@ -591,20 +676,23 @@ const firebaseConfig = {
             workerList.innerHTML = '';
             if(currentUser.bookedBy !== null) {
                 workerDash.style.display = 'block';
-                let customer = users.find(u => u.id === currentUser.bookedBy);
-                workerList.innerHTML = `
-                    <div class="dashboard-card worker-dash">
-                        <h4 style="color:#27ae60;">👤 ग्राहक: ${customer.name}</h4>
-                        <p style="margin:5px 0;">फोन: ${customer.phone} | काम के दिन: <b>${currentUser.bookDays}</b></p>
-                        <div class="action-row">
-                            <button onclick="viewAadhaar(${customer.id})" class="btn-small btn-aadhaar">ग्राहक का आधार देखें</button>
-                            <button onclick="openRatingModal(${customer.id}, 'customer')" class="btn-small" style="background:#2ecc71;">काम पूरा हुआ (फ्री करें)</button>
-                        </div>
-                    </div>`;
+                let customer = users.find(u => u.docId === currentUser.bookedBy);
+                if(customer) {
+                    workerList.innerHTML = `
+                        <div class="dashboard-card worker-dash">
+                            <h4 style="color:#27ae60;">👤 ग्राहक: ${customer.name}</h4>
+                            <p style="margin:5px 0;">फोन: ${customer.phone} | काम के दिन: <b>${currentUser.bookDays}</b></p>
+                            <div class="action-row">
+                                <button onclick="viewAadhaar('${customer.docId}')" class="btn-small btn-aadhaar">ग्राहक का आधार देखें</button>
+                                <button onclick="openRatingModal('${customer.docId}', 'customer')" class="btn-small" style="background:#2ecc71;">काम पूरा हुआ (फ्री करें)</button>
+                            </div>
+                        </div>`;
+                }
             } else { workerDash.style.display = 'none'; }
 
+            // Skills
             let skillsList = document.getElementById('mySkillsList');
-            if(currentUser.works.length === 0) {
+            if(!currentUser.works || currentUser.works.length === 0) {
                 skillsList.innerHTML = `<p style="color:#e74c3c; font-weight:bold;">आप अभी लिस्ट में नहीं दिख रहे हैं। नीचे काम जोड़ें।</p>`;
             } else {
                 skillsList.innerHTML = currentUser.works.map((w, index) => `
@@ -615,46 +703,73 @@ const firebaseConfig = {
             }
         }
 
-        function updateProfilePic(e) {
+        async function updateProfilePic(e) {
             let file = e.target.files[0];
-            if(file) { currentUser.photo = URL.createObjectURL(file); document.getElementById('p_photo_preview').src = currentUser.photo; }
+            if(file) {
+                document.getElementById('p_photo_preview').src = "https://i.gifer.com/ZKZg.gif"; // Loader
+                try {
+                    let base64 = await fileToBase64(file);
+                    await db.collection("users").doc(currentUser.docId).update({ photo: base64 });
+                    alert("प्रोफाइल फोटो अपडेट हो गई!");
+                } catch(err) { alert("Error: " + err.message); }
+            }
         }
-        function updatePhone() {
-            let newPhone = document.getElementById('p_phone_input').value;
-            if(newPhone) { currentUser.phone = newPhone; alert("नंबर अपडेट हो गया!"); renderProfile(); renderHome(); }
+
+        async function updateProfileField(field, inputId) {
+            let val = document.getElementById(inputId).value;
+            if(val) {
+                try {
+                    let updateObj = {}; updateObj[field] = val;
+                    await db.collection("users").doc(currentUser.docId).update(updateObj);
+                    alert("डेटा अपडेट हो गया!");
+                } catch(err) { alert("Error: " + err.message); }
+            }
         }
-        function updateAddress() {
-            let newAddress = document.getElementById('p_address_input').value;
-            if(newAddress) { currentUser.address = newAddress; alert("पता अपडेट हो गया!"); renderProfile(); renderHome(); }
-        }
-        function addWork() {
+
+        async function addWork() {
             let cat = document.getElementById('work_cat').value;
             let exp = document.getElementById('work_exp').value;
             if(!cat || !exp) { alert("कृपया काम और अनुभव दोनों भरें!"); return; }
-            currentUser.works.push({cat: cat, exp: exp});
-            document.getElementById('work_cat').value = ''; document.getElementById('work_exp').value = ''; renderProfile(); renderHome();
+            
+            let updatedWorks = currentUser.works ? [...currentUser.works] : [];
+            updatedWorks.push({cat: cat, exp: exp});
+            
+            try {
+                await db.collection("users").doc(currentUser.docId).update({ works: updatedWorks });
+                document.getElementById('work_cat').value = ''; document.getElementById('work_exp').value = '';
+                alert("काम जुड़ गया!");
+            } catch(e) { alert(e.message); }
         }
-        function removeWork(index) { currentUser.works.splice(index, 1); renderProfile(); renderHome(); }
-        function editSlot(workerId) {
-            let worker = users.find(u => u.id === workerId);
+
+        async function removeWork(index) { 
+            let updatedWorks = [...currentUser.works];
+            updatedWorks.splice(index, 1);
+            await db.collection("users").doc(currentUser.docId).update({ works: updatedWorks });
+        }
+
+        async function editSlot(workerDocId) {
+            let worker = users.find(u => u.docId === workerDocId);
             let newDays = prompt("नया दिन डालें:", worker.bookDays);
-            if(newDays > 0) { worker.bookDays = parseInt(newDays); alert("स्लॉट अपडेट हो गया!"); renderProfile(); renderHome(); }
+            if(newDays > 0) { 
+                await db.collection("users").doc(workerDocId).update({ bookDays: parseInt(newDays) });
+                alert("स्लॉट अपडेट हो गया!"); 
+            }
         }
 
         /* ================= AADHAAR VIEW MODAL ================= */
-        function viewAadhaar(userId) {
-            let user = users.find(u => u.id === userId);
+        function viewAadhaar(userDocId) {
+            let user = users.find(u => u.docId === userDocId);
             document.getElementById('aadhaarUserName').innerText = user.name + " का आधार कार्ड";
             document.getElementById('aadhaarViewImg').src = user.aadhaarPhoto;
             document.getElementById('aadhaarModal').style.display = 'flex';
         }
 
         /* ================= RATING SYSTEM ================= */
-        let targetUserId = null; let ratingType = ''; let selectedStars = 0;
+        let targetUserDocId = null; let ratingType = ''; let selectedStars = 0;
 
         function openRatingModal(id, type) {
-            targetUserId = id; ratingType = type; selectedStars = 0;
-            let targetUser = users.find(u => u.id === id);
+            targetUserDocId = id; ratingType = type; selectedStars = 0;
+            let targetUser = users.find(u => u.docId === id);
             document.getElementById('ratingTitle').innerText = `${targetUser.name} को रेट करें`;
             setStar(0); document.getElementById('ratingModal').style.display = 'flex';
         }
@@ -670,20 +785,26 @@ const firebaseConfig = {
             if(confirm(ratingType === 'admin' ? "बिना रेट किये बंद करें?" : "क्या आप बिना रेटिंग दिए स्लॉट फ्री करना चाहते हैं?")) processRelease(0);
         }
 
-        function processRelease(stars) {
-            let targetUser = users.find(u => u.id === targetUserId);
+        async function processRelease(stars) {
+            let targetUser = users.find(u => u.docId === targetUserDocId);
             document.getElementById('ratingModal').style.display = 'none';
 
-            if(stars > 0) {
-                targetUser.ratingSum += stars; targetUser.ratingCount += 1;
-                alert(`आपने ${targetUser.name} को ${stars} स्टार दिए!`);
-            }
+            try {
+                if(stars > 0) {
+                    await db.collection("users").doc(targetUser.docId).update({
+                        ratingSum: targetUser.ratingSum + stars,
+                        ratingCount: targetUser.ratingCount + 1
+                    });
+                    alert(`आपने ${stars} स्टार दिए!`);
+                }
 
-            if(ratingType === 'admin') { renderAdminDashboard(); return; } 
+                if(ratingType === 'admin') return; // Admin done
 
-            let worker = ratingType === 'worker' ? targetUser : currentUser;
-            worker.bookedBy = null; worker.bookDays = 0;
-            renderProfile(); renderHome();
+                let workerDocId = ratingType === 'worker' ? targetUser.docId : currentUser.docId;
+                await db.collection("users").doc(workerDocId).update({
+                    bookedBy: null, bookDays: 0
+                });
+            } catch(e) { alert(e.message); }
         }
 
         /* ================= MASTER ADMIN SYSTEM ================= */
@@ -693,6 +814,7 @@ const firebaseConfig = {
         }
         function adminLogin() {
             if(document.getElementById('a_pwd').value === "142212") {
+                isAdminActive = true; sessionStorage.setItem('adminActive', 'true');
                 document.getElementById('adminLoginBox').style.display = 'none';
                 document.getElementById('adminDashboardBox').style.display = 'block';
                 renderAdminDashboard();
@@ -704,17 +826,19 @@ const firebaseConfig = {
             else alert("गलत जन्म तिथि!");
         }
         function adminLogout() {
+            isAdminActive = false; sessionStorage.removeItem('adminActive');
             document.getElementById('adminDashboardBox').style.display = 'none';
             document.getElementById('adminLoginBox').style.display = 'block';
             document.getElementById('a_pwd').value = '';
         }
 
-        function adminAddCategory() {
+        async function adminAddCategory() {
             let newCat = document.getElementById('newCatInput').value.trim();
             if(newCat) {
-                categories.push(newCat); populateCategories();
+                let updatedList = [...categories, newCat];
+                await db.collection("settings").doc("categories").set({ list: updatedList });
                 document.getElementById('newCatInput').value = '';
-                alert(`कैटेगरी '${newCat}' जोड़ दी गई है!`);
+                alert(`कैटेगरी '${newCat}' लाइव जुड़ गई!`);
             }
         }
 
@@ -722,17 +846,17 @@ const firebaseConfig = {
             let tbody = document.getElementById('adminUsersTable');
             tbody.innerHTML = '';
             users.forEach(u => {
-                let role = u.works.length > 0 ? `<span style="color:#2980b9;font-weight:bold;">कारीगर</span>` : `<span style="color:#e67e22;font-weight:bold;">ग्राहक</span>`;
+                let role = (u.works && u.works.length > 0) ? `<span style="color:#2980b9;font-weight:bold;">कारीगर</span>` : `<span style="color:#e67e22;font-weight:bold;">ग्राहक</span>`;
                 let status = u.bookedBy ? `<span style="color:red; font-weight:bold;">बुक है</span>` : `<span style="color:green; font-weight:bold;">फ्री है</span>`;
                 let addressTxt = u.address ? u.address : "पता नहीं दिया";
 
                 let actions = `
-                    <button onclick="viewAadhaar(${u.id})" class="btn-small btn-aadhaar" style="margin-bottom:5px;">आधार देखें</button>
-                    <button onclick="openRatingModal(${u.id}, 'admin')" class="btn-small" style="background:#f1c40f; color:#000; margin-bottom:5px;">रेटिंग दें</button>
-                    <button onclick="adminDeleteUser(${u.id})" class="btn-small" style="background:#e74c3c; margin-bottom:5px;">डिलीट</button>
+                    <button onclick="viewAadhaar('${u.docId}')" class="btn-small btn-aadhaar" style="margin-bottom:5px;">आधार देखें</button>
+                    <button onclick="openRatingModal('${u.docId}', 'admin')" class="btn-small" style="background:#f1c40f; color:#000; margin-bottom:5px;">रेटिंग दें</button>
+                    <button onclick="adminDeleteUser('${u.docId}')" class="btn-small" style="background:#e74c3c; margin-bottom:5px;">डिलीट</button>
                 `;
                 if(u.bookedBy) {
-                    actions += `<button onclick="adminFreeSlot(${u.id})" class="btn-small" style="background:#2ecc71;">स्लॉट फ्री</button>`;
+                    actions += `<button onclick="adminFreeSlot('${u.docId}')" class="btn-small" style="background:#2ecc71;">स्लॉट फ्री</button>`;
                 }
 
                 tbody.innerHTML += `<tr>
@@ -745,16 +869,16 @@ const firebaseConfig = {
             });
         }
 
-        function adminDeleteUser(id) {
+        async function adminDeleteUser(docId) {
             if(confirm("क्या आप पक्का इस यूज़र को प्लेटफॉर्म से डिलीट/ब्लॉक करना चाहते हैं?")) {
-                users = users.filter(u => u.id !== id); renderAdminDashboard(); renderHome(); alert("यूज़र डिलीट हो गया!");
+                await db.collection("users").doc(docId).delete();
+                alert("यूज़र हमेशा के लिए डिलीट हो गया!");
             }
         }
-        function adminFreeSlot(id) {
+        async function adminFreeSlot(docId) {
             if(confirm("क्या आप इस कारीगर का बुकिंग स्लॉट जबरन फ्री करना चाहते हैं?")) {
-                let worker = users.find(u => u.id === id);
-                worker.bookedBy = null; worker.bookDays = 0;
-                renderAdminDashboard(); renderHome(); alert("स्लॉट फ्री कर दिया गया है!");
+                await db.collection("users").doc(docId).update({ bookedBy: null, bookDays: 0 });
+                alert("स्लॉट फ्री कर दिया गया है!");
             }
         }
 
